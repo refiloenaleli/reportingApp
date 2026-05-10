@@ -1,0 +1,144 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function currentUser() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function role() {
+      return currentUser().data.role;
+    }
+
+    function faculty() {
+      return currentUser().data.facultyName;
+    }
+
+    function hasRole(requiredRole) {
+      return signedIn() && role() == requiredRole;
+    }
+
+    function sameFaculty(resourceFaculty) {
+      return signedIn() && faculty() == resourceFaculty;
+    }
+
+    function hasStreamProfile() {
+      return currentUser().data.streamName != null && currentUser().data.streamName != '';
+    }
+
+    function sameStream(resourceStream) {
+      return !hasStreamProfile() || currentUser().data.streamName == resourceStream;
+    }
+
+    match /users/{userId} {
+      allow read, create, update: if signedIn() && request.auth.uid == userId;
+    }
+
+    match /reports/{reportId} {
+      allow read: if signedIn() && (
+        (hasRole('lecturer') && sameFaculty(resource.data.facultyName) && sameStream(resource.data.stream)) ||
+        (hasRole('prl') && sameFaculty(resource.data.facultyName) && sameStream(resource.data.stream)) ||
+        hasRole('pl')
+      );
+      allow create: if hasRole('lecturer') && request.resource.data.createdBy == request.auth.uid;
+      allow update: if
+        (hasRole('lecturer') && resource.data.createdBy == request.auth.uid) ||
+        (hasRole('prl') && sameFaculty(resource.data.facultyName) && sameStream(resource.data.stream));
+      allow delete: if hasRole('lecturer') && resource.data.createdBy == request.auth.uid;
+    }
+
+    match /ratings/{entryId} {
+      allow read: if signedIn() && (
+        resource.data.createdBy == request.auth.uid ||
+        (hasRole('lecturer') && sameFaculty(resource.data.facultyName)) ||
+        (hasRole('prl') && sameFaculty(resource.data.facultyName)) ||
+        hasRole('pl')
+      );
+      allow create: if signedIn() && request.auth.uid == request.resource.data.createdBy;
+      allow update: if hasRole('student') && resource.data.createdBy == request.auth.uid;
+      allow delete: if hasRole('student') && resource.data.createdBy == request.auth.uid;
+    }
+
+    match /monitoring/{entryId} {
+      allow read: if signedIn() && (
+        resource.data.createdBy == request.auth.uid ||
+        (sameFaculty(resource.data.facultyName) && sameStream(resource.data.stream)) ||
+        hasRole('pl')
+      );
+      allow create: if signedIn() &&
+        !hasRole('student') &&
+        request.auth.uid == request.resource.data.createdBy;
+      allow update: if
+        (!hasRole('student') && resource.data.createdBy == request.auth.uid) ||
+        hasRole('pl') ||
+        (hasRole('prl') && sameFaculty(resource.data.facultyName) && sameStream(resource.data.stream));
+      allow delete: if (!hasRole('student') && resource.data.createdBy == request.auth.uid) || hasRole('pl');
+    }
+
+    match /attendance/{entryId} {
+      allow read: if signedIn() && (
+        resource.data.studentEmail == currentUser().data.email ||
+        resource.data.createdBy == request.auth.uid ||
+        (hasRole('lecturer') && sameFaculty(resource.data.facultyName) && sameStream(resource.data.stream)) ||
+        (hasRole('prl') && sameFaculty(resource.data.facultyName) && sameStream(resource.data.stream)) ||
+        hasRole('pl')
+      );
+      allow create: if signedIn() &&
+        request.auth.uid == request.resource.data.createdBy &&
+        (
+          !hasRole('student') ||
+          request.resource.data.studentEmail == currentUser().data.email
+        );
+      allow update, delete: if
+        (resource.data.createdBy == request.auth.uid &&
+          (!hasRole('student') || resource.data.studentEmail == currentUser().data.email)) ||
+        hasRole('pl');
+    }
+
+    match /classes/{entryId} {
+      allow read: if signedIn() && (
+        (hasRole('student') && sameFaculty(resource.data.facultyName) && sameStream(resource.data.stream)) ||
+        (hasRole('prl') && sameFaculty(resource.data.facultyName) && sameStream(resource.data.stream)) ||
+        hasRole('pl')
+      );
+      allow create: if hasRole('pl');
+      allow update, delete: if
+        hasRole('pl');
+    }
+
+    match /courses/{entryId} {
+      allow read: if signedIn() && (
+        (hasRole('student') && sameFaculty(resource.data.facultyName) && sameStream(resource.data.stream)) ||
+        (hasRole('prl') && sameFaculty(resource.data.facultyName) && sameStream(resource.data.stream)) ||
+        hasRole('pl')
+      );
+      allow create, update, delete: if hasRole('pl');
+    }
+
+    match /lectures/{entryId} {
+      allow read: if signedIn() && (
+        (hasRole('lecturer') && resource.data.lecturerEmail == currentUser().data.email) ||
+        (hasRole('prl') && sameFaculty(resource.data.facultyName) && sameStream(resource.data.stream)) ||
+        hasRole('pl')
+      );
+      allow create, update, delete: if hasRole('pl');
+    }
+
+    match /notifications/{entryId} {
+      allow read: if signedIn() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.audience == 'all'
+      );
+      allow update: if signedIn() && resource.data.userId == request.auth.uid;
+      allow create, delete: if false;
+    }
+
+    match /notificationTokens/{entryId} {
+      allow read, create, update, delete: if false;
+    }
+  }
+}

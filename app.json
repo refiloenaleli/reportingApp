@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "LIMKOKWING Academic Hub",
+    "slug": "limkokwing-academic-hub",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#101114"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.limkokwing.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.limkokwing.app"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "scheme": "limkokwingapp",
+    "extra": {
+      "eas": {
+        "projectId": "cf7ee415-70e9-4e45-8cf1-5533772df94e"
+      }
+    },
+    "owner": "refiloe-naleli",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/cf7ee415-70e9-4e45-8cf1-5533772df94e"
+    }
+  }
+}

@@ -1,0 +1,132 @@
+const FACULTIES = [
+  'Information Technology',
+  'Design',
+  'Architecture',
+  'Communications',
+  'Tourism',
+];
+
+const moduleDefinitions = {
+  monitoring: {
+    collection: 'monitoring',
+    requiredFields: ['facultyName', 'stream', 'moduleName', 'entryDate', 'status', 'notes'],
+    numericFields: [],
+    roles: {
+      student: { read: 'faculty', create: false, update: false, delete: false },
+      lecturer: { read: 'own', create: true, update: 'own', delete: 'own' },
+      prl: { read: 'faculty', create: true, update: 'faculty', delete: false },
+      pl: { read: 'all', create: true, update: 'all', delete: 'all' },
+    },
+  },
+  ratings: {
+    collection: 'ratings',
+    requiredFields: [
+      'facultyName',
+      'targetName',
+      'targetEmail',
+      'targetRole',
+      'courseCode',
+      'ratingScore',
+      'comment',
+    ],
+    numericFields: ['ratingScore'],
+    roles: {
+      student: { read: 'own', create: true, update: 'own', delete: 'own' },
+      lecturer: { read: 'faculty', create: false, update: false, delete: false },
+      prl: { read: 'faculty', create: false, update: false, delete: false },
+      pl: { read: 'all', create: false, update: false, delete: false },
+    },
+  },
+  attendance: {
+    collection: 'attendance',
+    requiredFields: [
+      'facultyName',
+      'stream',
+      'className',
+      'courseCode',
+      'attendanceDate',
+      'studentName',
+      'studentEmail',
+      'studentId',
+      'attendanceStatus',
+    ],
+    numericFields: [],
+    roles: {
+      student: { read: 'studentLinked', create: true, update: 'own', delete: 'own' },
+      lecturer: { read: 'faculty', create: true, update: 'own', delete: 'own' },
+      prl: { read: 'faculty', create: false, update: false, delete: false },
+      pl: { read: 'all', create: false, update: false, delete: false },
+    },
+  },
+  classes: {
+    collection: 'classes',
+    requiredFields: [
+      'facultyName',
+      'stream',
+      'className',
+      'courseName',
+      'courseCode',
+      'semester',
+      'venue',
+      'scheduledTime',
+    ],
+    numericFields: [],
+    roles: {
+      student: { read: 'faculty', create: false, update: false, delete: false },
+      lecturer: { read: false, create: false, update: false, delete: false },
+      prl: { read: 'faculty', create: false, update: false, delete: false },
+      pl: { read: 'all', create: true, update: 'all', delete: 'all' },
+    },
+  },
+  courses: {
+    collection: 'courses',
+    requiredFields: [
+      'facultyName',
+      'courseName',
+      'courseCode',
+      'className',
+      'semester',
+      'assignedLecturerName',
+      'assignedLecturerEmail',
+      'stream',
+      'totalRegisteredStudents',
+      'venue',
+      'scheduledTime',
+    ],
+    numericFields: ['totalRegisteredStudents'],
+    roles: {
+      student: { read: 'faculty', create: false, update: false, delete: false },
+      lecturer: { read: false, create: false, update: false, delete: false },
+      prl: { read: 'faculty', create: false, update: false, delete: false },
+      pl: { read: 'all', create: true, update: 'all', delete: 'all' },
+    },
+  },
+  lectures: {
+    collection: 'lectures',
+    requiredFields: [
+      'facultyName',
+      'stream',
+      'lecturerName',
+      'lecturerEmail',
+      'courseCode',
+      'courseName',
+      'className',
+      'semester',
+      'totalRegisteredStudents',
+      'venue',
+      'scheduledTime',
+    ],
+    numericFields: ['totalRegisteredStudents'],
+    roles: {
+      student: { read: false, create: false, update: false, delete: false },
+      lecturer: { read: 'assigned', create: false, update: false, delete: false },
+      prl: { read: 'faculty', create: false, update: false, delete: false },
+      pl: { read: 'all', create: true, update: 'all', delete: 'all' },
+    },
+  },
+};
+
+module.exports = {
+  FACULTIES,
+  moduleDefinitions,
+};
