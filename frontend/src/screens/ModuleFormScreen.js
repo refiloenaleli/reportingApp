@@ -243,28 +243,38 @@ export default function ModuleFormScreen({ navigation, route }) {
     }
   };
 
-  const renderAttendanceForm = () => (
-    <>
-      <OptionSelector label="Faculty" options={FACULTIES} value={form.facultyName} onChange={(value) => updateField('facultyName', value)} error={errors.facultyName} />
-      <OptionSelector label="Stream" options={STREAMS} value={form.stream} onChange={(value) => updateField('stream', value)} error={errors.stream} />
-      {profile?.role === 'lecturer' && studentOptions.length ? (
-        <OptionSelector label="Student" options={studentOptions} value={form.studentName} onChange={applyStudentSelection} error={errors.studentName} />
-      ) : null}
-      {profile?.role === 'student' && studentCourseOptions.length ? (
-        <OptionSelector label="Class" options={studentCourseOptions} value={form.courseCode && form.className ? `${form.courseCode} - ${form.className}` : ''} onChange={applyAttendanceCourseSelection} />
-      ) : null}
-      {profile?.role === 'lecturer' && lecturerCourseOptions.length ? (
-        <OptionSelector label="Class" options={lecturerCourseOptions} value={form.courseCode && form.className ? `${form.courseCode} - ${form.className}` : ''} onChange={applyAttendanceCourseSelection} />
-      ) : null}
-      <InputField label="Class Name" value={form.className} onChangeText={(value) => updateField('className', value)} editable={profile?.role !== 'student' && profile?.role !== 'lecturer'} error={errors.className} />
-      <InputField label="Course Code" value={form.courseCode} onChangeText={(value) => updateField('courseCode', value)} editable={profile?.role !== 'student' && profile?.role !== 'lecturer'} autoCapitalize="characters" error={errors.courseCode} />
-      <InputField label="Attendance Date" value={form.attendanceDate} onChangeText={(value) => updateField('attendanceDate', value)} placeholder="2026-05-09" error={errors.attendanceDate} />
-      <InputField label="Student Name" value={form.studentName} onChangeText={(value) => updateField('studentName', value)} editable={profile?.role !== 'student' && profile?.role !== 'lecturer'} error={errors.studentName} />
-      <InputField label="Student Email" value={form.studentEmail} onChangeText={(value) => updateField('studentEmail', value)} editable={profile?.role !== 'student' && profile?.role !== 'lecturer'} autoCapitalize="none" error={errors.studentEmail} />
-      <InputField label="Student ID" value={form.studentId} onChangeText={(value) => updateField('studentId', value)} editable={profile?.role !== 'student' && profile?.role !== 'lecturer'} error={errors.studentId} />
-      <OptionSelector label="Status" options={['Present', 'Late', 'Absent']} value={form.attendanceStatus} onChange={(value) => updateField('attendanceStatus', value)} error={errors.attendanceStatus} />
-    </>
-  );
+  const renderAttendanceForm = () => {
+    const hasStudentSelector = profile?.role === 'lecturer' && studentOptions.length > 0;
+    const hasClassSelector =
+      (profile?.role === 'student' && studentCourseOptions.length > 0) ||
+      (profile?.role === 'lecturer' && lecturerCourseOptions.length > 0);
+    const canEditStudentIdentity = !hasStudentSelector && profile?.role !== 'student';
+    const canEditOwnStudentFields = profile?.role === 'student' && (!form.studentName || !form.studentEmail || !form.studentId);
+    const canEditClassFields = !hasClassSelector;
+
+    return (
+      <>
+        <OptionSelector label="Faculty" options={FACULTIES} value={form.facultyName} onChange={(value) => updateField('facultyName', value)} error={errors.facultyName} />
+        <OptionSelector label="Stream" options={STREAMS} value={form.stream} onChange={(value) => updateField('stream', value)} error={errors.stream} />
+        {hasStudentSelector ? (
+          <OptionSelector label="Student" options={studentOptions} value={form.studentName} onChange={applyStudentSelection} error={errors.studentName} />
+        ) : null}
+        {profile?.role === 'student' && studentCourseOptions.length ? (
+          <OptionSelector label="Class" options={studentCourseOptions} value={form.courseCode && form.className ? `${form.courseCode} - ${form.className}` : ''} onChange={applyAttendanceCourseSelection} />
+        ) : null}
+        {profile?.role === 'lecturer' && lecturerCourseOptions.length ? (
+          <OptionSelector label="Class" options={lecturerCourseOptions} value={form.courseCode && form.className ? `${form.courseCode} - ${form.className}` : ''} onChange={applyAttendanceCourseSelection} />
+        ) : null}
+        <InputField label="Class Name" value={form.className} onChangeText={(value) => updateField('className', value)} editable={canEditClassFields} error={errors.className} />
+        <InputField label="Course Code" value={form.courseCode} onChangeText={(value) => updateField('courseCode', value)} editable={canEditClassFields} autoCapitalize="characters" error={errors.courseCode} />
+        <InputField label="Attendance Date" value={form.attendanceDate} onChangeText={(value) => updateField('attendanceDate', value)} placeholder="2026-05-09" error={errors.attendanceDate} />
+        <InputField label="Student Name" value={form.studentName} onChangeText={(value) => updateField('studentName', value)} editable={canEditStudentIdentity || canEditOwnStudentFields} error={errors.studentName} />
+        <InputField label="Student Email" value={form.studentEmail} onChangeText={(value) => updateField('studentEmail', value)} editable={canEditStudentIdentity || canEditOwnStudentFields} autoCapitalize="none" error={errors.studentEmail} />
+        <InputField label="Student ID" value={form.studentId} onChangeText={(value) => updateField('studentId', value)} editable={canEditStudentIdentity || canEditOwnStudentFields} error={errors.studentId} />
+        <OptionSelector label="Status" options={['Present', 'Late', 'Absent']} value={form.attendanceStatus} onChange={(value) => updateField('attendanceStatus', value)} error={errors.attendanceStatus} />
+      </>
+    );
+  };
 
   const renderRatingForm = () => (
     <>
